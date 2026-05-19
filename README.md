@@ -74,7 +74,7 @@ streamlit run app.py
 
 \- Population data: Isle Royale Wolf-Moose Project annual reports 
 
-&#x20; (isleroyalewolfmooseproject.org)
+&#x20; (isleroyalewolf.org)
 
 \- Climate data: NOAA Climate Data Online API
 
