@@ -1,8 +1,11 @@
 \# Isle Royale Wolf-Moose Population Simulator
 
 
+LIVE DEMO 
+https://isle-royale-sim.streamlit.app
+**IN PROGRESS**
 
-An interactive ecological simulation built on 60+ years of real field data
+An interactive ecological simulation built on 45+ years of real field data
 
 from the Isle Royale Wolf-Moose Project. Models predator-prey population 
 
