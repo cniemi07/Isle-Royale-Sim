@@ -8,8 +8,8 @@ from model import run_simulation
 
 st.set_page_config(page_title="Isle Royale Wolf-Moose Simulator", page_icon="🐺", layout="wide")
 
-st.title("🐺 Isle Royale Wolf-Moose Population Simulator")
-st.markdown("60+ years of real field data meets ecological modeling. Adjust the parameters to run your own scenarios.")
+st.title("Isle Royale Wolf-Moose Population Simulator")
+st.markdown("Adjust the parameters to run your own scenarios.")
 
 @st.cache_data
 def load_historical():
@@ -44,7 +44,7 @@ t, moose, wolves = run_simulation(
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("📊 Historical Data (1980–2026)")
+    st.subheader("Historical Data (1980–2026)")
     fig1, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
     ax1.plot(df['year'], df['wolves'], color='steelblue', linewidth=2, marker='o', markersize=3)
     ax1.set_ylabel('Wolves')
@@ -57,7 +57,7 @@ with col1:
     st.pyplot(fig1)
 
 with col2:
-    st.subheader("🔮 Your Simulation")
+    st.subheader("Your Simulation")
     fig2, (ax3, ax4) = plt.subplots(2, 1, figsize=(8, 6))
     ax3.plot(t, wolves, color='steelblue', linewidth=2)
     ax3.set_ylabel('Wolves')
@@ -69,7 +69,7 @@ with col2:
     plt.tight_layout()
     st.pyplot(fig2)
 
-st.subheader("🔄 Phase Space — Predator-Prey Spiral")
+st.subheader("Phase Space — Predator-Prey Spiral")
 st.markdown("A stable ecosystem spirals inward toward equilibrium. Compare the shape to what actually happened on Isle Royale.")
 fig3, ax = plt.subplots(figsize=(6, 5))
 ax.plot(moose, wolves, color='purple', alpha=0.7, linewidth=1.5)
