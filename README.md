@@ -17,7 +17,7 @@ covariates including winter severity and ice cover data.
 
 \## What it does
 
-\- Loads historical wolf and moose population data (1959-present) into a 
+\- Loads historical wolf and moose population data (1980-present) into a 
 
 &#x20; SQLite database
 
