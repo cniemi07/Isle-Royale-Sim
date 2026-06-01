@@ -43,31 +43,82 @@ t, moose, wolves = run_simulation(
 
 col1, col2 = st.columns(2)
 
-with col1:
-    st.subheader("Historical Data (1980–2026)")
-    fig1, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
-    ax1.plot(df['year'], df['wolves'], color='steelblue', linewidth=2, marker='o', markersize=3)
-    ax1.set_ylabel('Wolves')
-    ax1.grid(True, alpha=0.3)
-    ax2.plot(df['year'], df['moose'], color='sienna', linewidth=2, marker='o', markersize=3)
-    ax2.set_ylabel('Moose')
-    ax2.set_xlabel('Year')
-    ax2.grid(True, alpha=0.3)
-    plt.tight_layout()
-    st.pyplot(fig1)
+st.subheader("📊 Historical Data vs Simulation (1980–2026)")
 
-with col2:
-    st.subheader("Your Simulation")
-    fig2, (ax3, ax4) = plt.subplots(2, 1, figsize=(8, 6))
-    ax3.plot(t, wolves, color='steelblue', linewidth=2)
-    ax3.set_ylabel('Wolves')
-    ax3.grid(True, alpha=0.3)
-    ax4.plot(t, moose, color='sienna', linewidth=2)
-    ax4.set_ylabel('Moose')
-    ax4.set_xlabel('Years from start')
-    ax4.grid(True, alpha=0.3)
-    plt.tight_layout()
-    st.pyplot(fig2)
+events = [
+    (1995, "Record moose (2,400)", "moose"),
+    (1997, "Moose crash (500)",    "moose"),
+    (2012, "Wolf crisis (9)",      "wolf"),
+    (2018, "Reintroduction begins","wolf"),
+    (2026, "37 wolves / 524 moose","wolf"),
+]
+
+bg_color = "#0F1117"
+ax_color = "#1A1A2E"
+text_color = "#FAFAFA"
+grid_color = "#2A2A3E"
+
+fig1, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+fig1.patch.set_facecolor(bg_color)
+
+for ax in [ax1, ax2]:
+    ax.set_facecolor(ax_color)
+    ax.tick_params(colors=text_color)
+    ax.xaxis.label.set_color(text_color)
+    ax.yaxis.label.set_color(text_color)
+    for spine in ax.spines.values():
+        spine.set_edgecolor(grid_color)
+
+# Historical data
+ax1.plot(df['year'], df['wolves'], color='#5BA4CF', linewidth=2,
+         marker='o', markersize=3, zorder=3, label='Historical')
+ax2.plot(df['year'], df['moose'], color='#C97B4B', linewidth=2,
+         marker='o', markersize=3, zorder=3, label='Historical')
+
+# Simulation overlay — map simulation years onto historical year range
+sim_years_mapped = df['year'].min() + t
+ax1.plot(sim_years_mapped, wolves, color='#A8D8A8', linewidth=1.5,
+         linestyle='--', alpha=0.8, zorder=2, label='Simulation')
+ax2.plot(sim_years_mapped, moose, color='#F4C47E', linewidth=1.5,
+         linestyle='--', alpha=0.8, zorder=2, label='Simulation')
+
+ax1.set_ylabel('Wolf Population', color=text_color)
+ax1.grid(True, alpha=0.15, color=grid_color)
+ax1.legend(facecolor=ax_color, labelcolor=text_color, fontsize=8)
+
+ax2.set_ylabel('Moose Population', color=text_color)
+ax2.set_xlabel('Year', color=text_color)
+ax2.grid(True, alpha=0.15, color=grid_color)
+ax2.legend(facecolor=ax_color, labelcolor=text_color, fontsize=8)
+
+for year, label, chart in events:
+    for ax in [ax1, ax2]:
+        ax.axvline(x=year, color='#FFFFFF', alpha=0.1,
+                  linewidth=1, linestyle='--', zorder=2)
+
+    if chart == "wolf":
+        y_val = df.loc[df['year'] == year, 'wolves'].values
+        if len(y_val) > 0 and not pd.isna(y_val[0]):
+            ax1.annotate(label,
+                xy=(year, y_val[0]),
+                xytext=(5, 5),
+                textcoords='offset points',
+                fontsize=7, color='#AAAAAA',
+                va='bottom'
+            )
+    else:
+        y_val = df.loc[df['year'] == year, 'moose'].values
+        if len(y_val) > 0 and not pd.isna(y_val[0]):
+            ax2.annotate(label,
+                xy=(year, y_val[0]),
+                xytext=(5, 5),
+                textcoords='offset points',
+                fontsize=7, color='#AAAAAA',
+                va='bottom'
+            )
+
+plt.tight_layout()
+st.pyplot(fig1)
 
 st.subheader("Phase Space — Predator-Prey Spiral")
 st.markdown("A stable ecosystem spirals inward toward equilibrium. Compare the shape to what actually happened on Isle Royale.")
@@ -82,7 +133,7 @@ ax.grid(True, alpha=0.3)
 st.pyplot(fig3)
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Peak Moose", f"{int(max(moose)):,}")
-c2.metric("Peak Wolves", f"{int(max(wolves)):,}")
-c3.metric("Final Moose", f"{int(moose[-1]):,}")
-c4.metric("Final Wolves", f"{int(wolves[-1]):,}")
+c1.metric("Peak Moose Population", f"{int(max(moose)):,}")
+c2.metric("Peak Wolf Population", f"{int(max(wolves)):,}")
+c3.metric("Current Moose Population", f"{int(moose[-1]):,}")
+c4.metric("Current Wolf Population", f"{int(wolves[-1]):,}")
