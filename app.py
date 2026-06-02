@@ -28,6 +28,29 @@ def load_wsi():
     except:
         pass
     return 1.0
+@st.cache_data
+def load_fitted_params():
+    try:
+        conn = sqlite3.connect('db/isle_royale.db')
+        result = pd.read_sql('SELECT * FROM fitted_params LIMIT 1', conn)
+        conn.close()
+        if len(result) > 0:
+            return {
+                'birth_rate': float(result['birth_rate'].iloc[0]),
+                'predation_rate': float(result['predation_rate'].iloc[0]),
+                'efficiency': float(result['efficiency'].iloc[0]),
+                'death_rate': float(result['death_rate'].iloc[0])
+            }
+    except:
+        pass
+    return {
+        'birth_rate': 0.4,
+        'predation_rate': 0.01,
+        'efficiency': 0.075,
+        'death_rate': 0.5
+    }
+
+params = load_fitted_params()
 
 current_wsi = load_wsi()
 df = load_historical()
@@ -35,10 +58,15 @@ df = load_historical()
 st.sidebar.header("Simulation Parameters")
 initial_moose = st.sidebar.slider("Initial Moose Population", 100, 2000, 664, step=50)
 initial_wolves = st.sidebar.slider("Initial Wolf Population", 1, 60, 50)
-birth_rate = st.sidebar.slider("Moose Birth Rate", 0.1, 1.0, 0.4, step=0.01)
-predation_rate = st.sidebar.slider("Predation Rate", 0.001, 0.05, 0.01, step=0.001, format="%.3f")
-efficiency = st.sidebar.slider("Wolf Reproductive Efficiency", 0.01, 0.2, 0.075, step=0.005)
-death_rate = st.sidebar.slider("Wolf Death Rate", 0.1, 1.0, 0.5, step=0.01)
+birth_rate = st.sidebar.slider("Moose Birth Rate", 0.1, 1.0,
+                                params['birth_rate'], step=0.01)
+predation_rate = st.sidebar.slider("Predation Rate", 0.001, 0.05,
+                                    params['predation_rate'], step=0.001, format="%.4f")
+efficiency = st.sidebar.slider("Wolf Reproductive Efficiency", 0.01, 0.2,
+                                params['efficiency'], step=0.005)
+death_rate = st.sidebar.slider("Wolf Death Rate", 0.1, 1.0,
+                                params['death_rate'], step=0.01)
+st.sidebar.caption("Default parameters fitted against 44 years of real field data using scipy.optimize")
 winter_severity = st.sidebar.slider("Winter Severity Multiplier", 0.5, 2.0, current_wsi, step=0.1)
 st.sidebar.caption(f"Current value based on live NOAA data (2024 winter avg min temp: 17.5°F)")
 sim_years = st.sidebar.slider("Simulation Years", 10, 100, 46)
