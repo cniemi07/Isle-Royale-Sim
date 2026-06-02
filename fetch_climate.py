@@ -1,67 +1,69 @@
 import requests
 import pandas as pd
 import sqlite3
+import time
 
 TOKEN = "hDqIlfPZJKLdLDwmDzTJrfGGPhjcipCK"
-
 headers = {"token": TOKEN}
 
-params = {
-    "datasetid": "GHCND",
-    "stationid": "GHCND:USW00094850",  # Houghton County Airport — closest to Isle Royale
-    "datatypeid": "TMIN",
-    "startdate": "2024-01-01",
-    "enddate": "2024-03-31",
-    "limit": 100,
-    "units": "standard"
-}
-
-response = requests.get(
-    "https://www.ncdc.noaa.gov/cdo-web/api/v2/data",
-    headers=headers,
-    params=params
-)
-
-print(f"Status: {response.status_code}")
-data = response.json()
-
-if 'results' in data:
+def fetch_winter_temps(year):
+    """Fetch Jan-Mar minimum temperatures for a given year."""
+    params = {
+        "datasetid": "GHCND",
+        "stationid": "GHCND:USW00094850",
+        "datatypeid": "TMIN",
+        "startdate": f"{year}-01-01",
+        "enddate": f"{year}-03-31",
+        "limit": 100,
+        "units": "standard"
+    }
+    response = requests.get(
+        "https://www.ncdc.noaa.gov/cdo-web/api/v2/data",
+        headers=headers,
+        params=params
+    )
+    if response.status_code != 200:
+        print(f"  Error {response.status_code} for {year}")
+        return None
+    data = response.json()
+    if 'results' not in data:
+        print(f"  No data for {year}")
+        return None
     df = pd.DataFrame(data['results'])
-    print(df.head())
-    print(f"Fetched {len(df)} records")
+    return df['value'].mean()
 
-    # Save to database
-    conn = sqlite3.connect('db/isle_royale.db')
-    df.to_sql('climate', conn, if_exists='replace', index=False)
-    conn.close()
-    print("Saved to database")
-else:
-    print("Error:", data)
+def calc_wsi(avg_min_temp):
+    """Convert average minimum temp to Winter Severity Index."""
+    if avg_min_temp is None:
+        return None
+    wsi = 1.0 + max(0, (32 - avg_min_temp) / 32)
+    return round(min(wsi, 2.0), 3)
 
-# Calculate a simple Winter Severity Index
-# WSI = average of daily minimum temps for Jan-Mar, inverted
-# Lower temps = harsher winter = higher severity
+# Fetch data for all years 1980-2024
+results = []
+years = range(1980, 2025)
+
+print(f"Fetching winter data for {len(years)} years...")
+print("(This will take about 2 minutes due to API rate limits)\n")
+
+for year in years:
+    print(f"Fetching {year}...", end=" ")
+    avg_temp = fetch_winter_temps(year)
+    wsi = calc_wsi(avg_temp)
+    results.append({
+        'year': year,
+        'avg_min_temp': avg_temp,
+        'wsi': wsi
+    })
+    if avg_temp is not None:
+        print(f"avg min temp: {avg_temp:.1f}°F, WSI: {wsi}")
+    time.sleep(0.3)  # respect rate limits
+
+# Save to database
+df_wsi = pd.DataFrame(results)
 conn = sqlite3.connect('db/isle_royale.db')
-climate_df = pd.read_sql('SELECT * FROM climate', conn)
+df_wsi.to_sql('winter_severity', conn, if_exists='replace', index=False)
+conn.close()
 
-avg_min_temp = climate_df['value'].mean()
-
-# Normalize: 32F = mild (severity 1.0), 0F = severe (severity 2.0)
-# Linear scale between those bounds
-wsi = 1.0 + max(0, (32 - avg_min_temp) / 32)
-wsi = round(min(wsi, 2.0), 2)  # cap at 2.0
-
-print(f"\nAverage minimum temp (Jan-Mar 2024): {avg_min_temp:.1f}°F")
-print(f"Calculated Winter Severity Index: {wsi}")
-
-# Save WSI to database
-import sqlite3 as sl
-conn2 = sl.connect('db/isle_royale.db')
-conn2.execute('''CREATE TABLE IF NOT EXISTS winter_severity 
-                 (year INTEGER, wsi REAL, avg_min_temp REAL)''')
-conn2.execute('DELETE FROM winter_severity WHERE year = 2024')
-conn2.execute('INSERT INTO winter_severity VALUES (?, ?, ?)',
-              (2024, wsi, avg_min_temp))
-conn2.commit()
-conn2.close()
-print("WSI saved to database")
+print(f"\nDone. Saved {len(df_wsi)} years of winter severity data.")
+print(df_wsi[['year', 'avg_min_temp', 'wsi']].to_string(index=False))

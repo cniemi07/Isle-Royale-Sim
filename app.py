@@ -178,7 +178,57 @@ c1.metric("Peak Moose Population", f"{int(max(moose)):,}")
 c2.metric("Peak Wolf Population", f"{int(max(wolves)):,}")
 c3.metric("Current Moose Population", f"{int(moose[-1]):,}")
 c4.metric("Current Wolf Population", f"{int(wolves[-1]):,}")
+st.subheader("Winter Severity Index (1980–2024)")
+st.markdown("Derived from NOAA daily minimum temperature data at Houghton County Airport. Higher values indicate harsher winters — a key driver of moose vulnerability and wolf hunting success.")
 
+@st.cache_data
+def load_wsi_history():
+    conn = sqlite3.connect('db/isle_royale.db')
+    df = pd.read_sql('SELECT * FROM winter_severity ORDER BY year', conn)
+    conn.close()
+    return df
+
+wsi_df = load_wsi_history()
+
+fig4, ax = plt.subplots(figsize=(12, 3.5))
+fig4.patch.set_facecolor(bg_color)
+ax.set_facecolor(ax_color)
+ax.tick_params(colors=text_color)
+ax.xaxis.label.set_color(text_color)
+ax.yaxis.label.set_color(text_color)
+for spine in ax.spines.values():
+    spine.set_edgecolor(grid_color)
+
+ax.fill_between(wsi_df['year'], wsi_df['wsi'], alpha=0.3, color='#5BA4CF')
+ax.plot(wsi_df['year'], wsi_df['wsi'], color='#5BA4CF', linewidth=2)
+ax.axhline(y=wsi_df['wsi'].mean(), color='#AAAAAA', linewidth=1,
+           linestyle='--', alpha=0.6, label=f"Mean WSI: {wsi_df['wsi'].mean():.3f}")
+
+notable = [(2014, 2.000, "2014: Record cold"), (2024, 1.455, "2024: Mildest winter")]
+for year, wsi_val, label in notable:
+    ax.annotate(label,
+        xy=(year, wsi_val),
+        xytext=(5, 5),
+        textcoords='offset points',
+        fontsize=7, color='#AAAAAA',
+        va='bottom'
+    )
+
+ax.set_ylabel('Winter Severity Index', color=text_color)
+ax.set_xlabel('Year', color=text_color)
+ax.set_ylim(1.0, 2.1)
+ax.grid(True, alpha=0.15, color=grid_color)
+ax.legend(facecolor=ax_color, labelcolor=text_color, fontsize=8)
+
+plt.tight_layout()
+st.pyplot(fig4)
+
+w1, w2, w3 = st.columns(3)
+w1.metric("Harshest Winter", f"{wsi_df.loc[wsi_df['wsi'].idxmax(), 'year']:.0f}",
+          f"WSI {wsi_df['wsi'].max():.3f}")
+w2.metric("Mildest Winter", f"{wsi_df.loc[wsi_df['wsi'].idxmin(), 'year']:.0f}",
+          f"WSI {wsi_df['wsi'].min():.3f}")
+w3.metric("45-Year Average", f"WSI {wsi_df['wsi'].mean():.3f}", "")
 st.subheader("Historical Population Data")
 st.markdown("Full dataset from Isle Royale Wolf-Moose Project annual reports (1980–2026). Gaps indicate canceled field studies.")
 
