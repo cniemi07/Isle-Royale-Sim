@@ -9,7 +9,7 @@ from model import run_simulation
 st.set_page_config(page_title="Isle Royale Wolf-Moose Simulator", page_icon="", layout="wide")
 
 st.title("Isle Royale Wolf-Moose Population Simulator")
-st.image("data\\wolf.jpg",caption = "Isle Royale Wolves",use_container_width = True)
+st.image("data/wolf.jpg",caption = "Isle Royale Wolves",use_container_width = True)
 st.markdown("Adjust the parameters to run your own scenarios.")
 
 @st.cache_data
