@@ -11,7 +11,7 @@ from the Isle Royale Wolf-Moose Project. Models predator-prey population
 
 dynamics using Lotka-Volterra differential equations with environmental 
 
-covariates including winter severity and ice cover data.
+covariates including winter severity.
 
 
 
@@ -23,7 +23,7 @@ covariates including winter severity and ice cover data.
 
 \- Simulates population dynamics using Lotka-Volterra ODEs solved with SciPy
 
-\- Pulls live climate data from the NOAA API to feed current environmental 
+\- Pulls climate data from the NOAA API to feed current environmental 
 
 &#x20; variables into the model
 
@@ -49,7 +49,7 @@ Isle Royale National Park hosts one of the longest-running predator-prey
 
 studies in the world. I've followed this research since middle school and 
 
-built this project to explore the dynamics computationally — specifically 
+built this project to explore the dynamics computationally, specifically 
 
 how predator reintroduction and environmental variables like winter severity 
 
